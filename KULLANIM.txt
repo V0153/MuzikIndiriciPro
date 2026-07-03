@@ -1,0 +1,62 @@
+MÜZİK İNDİRİCİ PRO v1.31 - KULLANIM KILAVUZU
+=============================================
+Yapımcı: V™
+
+KURULUM:
+  "MuzikIndiriciPro_Kurulum.exe" dosyasına çift tıkla, adımları izle.
+  Program masaüstündeki "Muzik Indirici PRO" simgesinden açılır.
+
+SAYFALAR:
+  ↓ İNDİRİCİ
+    - Kutuya şarkı isimlerini yaz (her satıra bir şarkı) veya doğrudan
+      video bağlantısı yapıştır.
+    - Kaynak: "Otomatik" önerilir — bir kaynak çalışmazsa (API değişirse)
+      sıradaki kaynağa kendiliğinden geçer (YouTube → SoundCloud).
+    - Kalite: 128 / 192 / 320 kbps.
+    - MP3 olarak iner; kapak ve etiketler otomatik eklenir.
+      Daha önce inenler tekrar indirilmez.
+
+  ♫ KÜTÜPHANE (MP3 DÜZENLE)
+    - MP3'e tıkla: Başlık, Sanatçı, Albüm, Tür ve dosya adını düzenle.
+    - "Kapak Değiştir" ile albüm kapağını kendi resminle değiştir.
+    - "Çal" uygulama içindeki çalarda başlatır; "Stüdyoda Aç" kısayolu.
+
+  ▶ YERLEŞİK ÇALAR (alt çubuk)
+    - Her sayfadan erişilir: oynat/duraklat, durdur, şarkı içinde
+      ileri-geri sarma (kaydırıcıyı sürükle) ve ses düzeyi.
+
+  ✎ STÜDYO (SES DÜZENLEME)
+    - Kes (trim): Başlangıç / Bitiş zamanı gir (örn. 0:15 - 1:30).
+    - Ses kazancı: -12 / +12 dB; Bas ve Tiz ekolayzır.
+    - Fade in / Fade out, Hız (0.5x - 2x).
+    - Perde (pitch): sesi inceltir/kalınlaştırır, süre değişmez (+/- 12).
+    - Yankı (reverb) ve Karaoke (vokali azaltma).
+    - Normalize: şarkıları standart ses seviyesine getirir (-14 LUFS).
+    - HAZIR ÖNAYARLAR: Bas Güçlü, Canlı Konser, Telefon Hoparlörü,
+      Gece Modu, Karaoke, Slowed + Reverb, Nightcore.
+    - "Önizle" sonucu uygulama içinde çalar (kalıcı değil);
+      "Kopya Olarak Kaydet" güvenlidir; "Üzerine Yaz" orijinali
+      değiştirir. Kapak ve etiketler her durumda korunur.
+
+  ◈ GÖRSELDEN TARA (YAPAY ZEKA / OCR)
+    - Müzik listesinin ekran görüntüsünü yükle; şarkı adları otomatik
+      okunur (çevrimdışı Windows OCR), listeye tek tıkla aktarılır.
+
+  ⚙ AYARLAR
+    - Koyu/Açık tema, sürüm ve motor bilgileri.
+
+OTOMATİK GÜNCELLEME:
+  Uygulama her açılışta yeni sürümü kendiliğinden denetler; bulursa
+  indirir, kurar ve haber verir. Açma/kapama seçeneği yoktur.
+  Sunucu: github.com/V0153/MuzikIndiriciPro deposundaki surum.json.
+  Yeni sürüm çıkarma: yeni Kurulum.exe'yi Releases'a yükle,
+  surum.json'daki "surum" ve "indirme_url" alanlarını güncelle;
+  tüm kurulu kopyalar bir sonraki açılışta kendini günceller.
+
+DOSYALAR:
+  - İndirilenler: Müzikler\OyunHavalari (İndirici sayfasından değiştirilebilir)
+  - Ayarlar ve liste: program klasöründeki ayarlar.json / sarkilar.txt
+  - Baştan indirmek için: indirilenler.txt dosyasını sil.
+
+NOT:
+  Bu programı yalnızca indirme hakkına sahip olduğun içerikler için kullan.

@@ -1,0 +1,14 @@
+# Derleme artıkları
+build/
+dist/
+__pycache__/
+*.spec
+
+# Büyük ikili dosyalar (Release olarak yayınlanır, depoya girmez)
+ffmpeg/
+kurulum/
+
+# Kullanıcı verileri
+ayarlar.json
+indirilenler.txt
+cikti.log

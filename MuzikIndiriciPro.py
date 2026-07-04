@@ -44,6 +44,15 @@ def main():
             guvenli_yaz(sarki)
         return 0
 
+    if "--guncelleme-testi" in sys.argv:
+        # Eski sürüm gibi davranıp güncellemeyi indirir ama KURMAZ (tanı için)
+        from muzik_pro import guncelleme
+        guncelleme.SURUM = "0.1"
+        tamam, mesaj = guncelleme.oto_guncelle(kur=False)
+        guvenli_yaz(f"Guncelleme testi: {'BASARILI' if tamam else 'BASARISIZ'}"
+                    f" - {mesaj.splitlines()[0]}")
+        return 0 if tamam else 1
+
     if "--otomatik" in sys.argv:
         from muzik_pro import ayarlar, indirme
         liste = sarkilari_oku()

@@ -893,19 +893,16 @@ class Uygulama(ctk.CTk):
         threading.Thread(target=calis, daemon=True).start()
 
     def _oto_guncelleme(self, hemen=False):
-        """Açılışta (ve elle denetlemede) sessiz otomatik güncelleme."""
+        """Açılışta (ve elle denetlemede) sessiz otomatik güncelleme.
+
+        Kurulum başlatıldığında uygulama beklemeden kapanır; sessiz kurulum
+        dosyaların üzerine yazar ve kısa sürede tamamlanır.
+        """
         def calis():
             url = self.ayar.get("guncelleme_url") or None
             basladi, _ = guncelleme.oto_guncelle(url)
             if basladi:
-                def kapat():
-                    messagebox.showinfo(
-                        UYGULAMA_ADI,
-                        "Yeni sürüm indirildi, kurulum başlatıldı.\n"
-                        "Uygulama şimdi kapanacak; kurulum bitince "
-                        "yeniden açabilirsin.")
-                    self.destroy()
-                self.after(0, kapat)
+                self.after(0, self._kapat)
 
         threading.Thread(target=calis, daemon=True).start()
 

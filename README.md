@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Müzik İndirici PRO</h1>
-<p align="center"><b>v1.31</b> • Yapımcı: <b>V™</b></p>
+<p align="center"><b>v1.32</b> • Yapımcı: <b>V™</b></p>
 
 Modern arayüzlü, tam kapsamlı müzik indirme ve düzenleme uygulaması (Windows).
 

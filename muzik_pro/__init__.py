@@ -3,7 +3,7 @@
 import os
 import sys
 
-SURUM = "1.31"
+SURUM = "1.32"
 YAPIMCI = "V™"
 UYGULAMA_ADI = "Müzik İndirici PRO"
 

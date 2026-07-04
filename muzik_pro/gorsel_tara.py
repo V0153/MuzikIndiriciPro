@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Görselden şarkı adı tarama - Windows yerleşik OCR motoru (çevrimdışı)."""
 import asyncio
+import os
 import re
 
 # Ekran görüntülerinde şarkı adı OLMAYAN tipik arayüz metinleri
@@ -37,6 +38,8 @@ async def _oku_async(yol):
 
 def gorselden_metin(yol):
     """Görseldeki tüm metni döndürür."""
+    # Windows OCR (WinRT) eğik çizgili yolları kabul etmez; normalleştir
+    yol = os.path.normpath(os.path.abspath(yol))
     return asyncio.run(_oku_async(yol))
 
 

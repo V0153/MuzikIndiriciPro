@@ -1,5 +1,5 @@
 {
-  "surum": "1.31",
-  "indirme_url": "https://github.com/V0153/MuzikIndiriciPro/releases/download/v1.31/MuzikIndiriciPro_Kurulum.exe",
-  "notlar": "İlk GitHub sürümü: yerleşik çalar, Stüdyo (kes/ses/fade/hız/perde/yankı/karaoke/önayarlar), görselden tarama (OCR), çoklu kaynak ve otomatik güncelleme."
+  "surum": "1.32",
+  "indirme_url": "https://github.com/V0153/MuzikIndiriciPro/releases/download/v1.32/MuzikIndiriciPro_Kurulum.exe",
+  "notlar": "Görselden Tara düzeltmesi: dosya seçiciden gelen eğik çizgili yollar Windows OCR'a geçirilirken 'Belirtilen yol geçersiz' hatası veriyordu."
 }

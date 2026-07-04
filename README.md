@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Müzik İndirici PRO</h1>
-<p align="center"><b>v1.32</b> • Yapımcı: <b>V™</b></p>
+<p align="center"><b>v1.33</b> • Yapımcı: <b>V™</b></p>
 
 Modern arayüzlü, tam kapsamlı müzik indirme ve düzenleme uygulaması (Windows).
 
@@ -20,6 +20,8 @@ Modern arayüzlü, tam kapsamlı müzik indirme ve düzenleme uygulaması (Windo
   7 hazır önayar (Bas Güçlü, Nightcore, Slowed + Reverb…).
 - **◈ Görselden Tara** — müzik listesi ekran görüntüsünden şarkı adlarını
   çevrimdışı Windows OCR ile okur ve indirme listesine ekler.
+- **✎ El Yazısı Tara** — el yazısı şarkı listelerini ücretsiz Gemini
+  yapay zekâsıyla okur (aistudio.google.com/apikey'den ücretsiz anahtar).
 - **Otomatik güncelleme** — her açılışta bu depodaki
   [`surum.json`](surum.json) denetlenir; yeni sürüm kendiliğinden iner ve kurulur.
 

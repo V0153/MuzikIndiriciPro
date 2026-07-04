@@ -1,5 +1,5 @@
 {
-  "surum": "1.32",
-  "indirme_url": "https://github.com/V0153/MuzikIndiriciPro/releases/download/v1.32/MuzikIndiriciPro_Kurulum.exe",
-  "notlar": "Görselden Tara düzeltmesi: dosya seçiciden gelen eğik çizgili yollar Windows OCR'a geçirilirken 'Belirtilen yol geçersiz' hatası veriyordu."
+  "surum": "1.33",
+  "indirme_url": "https://github.com/V0153/MuzikIndiriciPro/releases/download/v1.33/MuzikIndiriciPro_Kurulum.exe",
+  "notlar": "Yeni: El Yazısı Tara — el yazısı şarkı listeleri ücretsiz Gemini yapay zekâsıyla okunuyor (Ayarlar'dan ücretsiz anahtar). Görselden Tara sayfasında ayrı düğme."
 }

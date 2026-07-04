@@ -12,7 +12,7 @@ from PIL import Image
 from . import (SURUM, UYGULAMA_ADI, YAPIMCI, kaynak_yolu,
                sarkilari_oku, sarkilari_yaz)
 from . import ayarlar as ayar_modulu
-from . import etiketler, gorsel_tara, guncelleme, indirme, studyo
+from . import etiketler, gorsel_tara, guncelleme, indirme, studyo, yapay_zeka
 from .oynatici import Oynatici
 
 MOR = "#7C3AED"
@@ -724,18 +724,25 @@ class Uygulama(ctk.CTk):
         ctk.CTkLabel(s, text="Görselden Tara",
                      font=ctk.CTkFont(size=24, weight="bold")
                      ).grid(row=0, column=0, sticky="w")
-        ctk.CTkLabel(s, text="Müzik listesinin ekran görüntüsünü yükle; "
-                             "yapay zekâ destekli OCR şarkı adlarını çıkarsın.",
+        ctk.CTkLabel(s, text="Ekran görüntüsü için 'Görsel Tara' (çevrimdışı), "
+                             "el yazısı liste için 'El Yazısı Tara' (ücretsiz "
+                             "yapay zekâ) kullan.",
                      text_color="gray60").grid(row=1, column=0, sticky="w",
                                                pady=(0, 10))
 
         ust = ctk.CTkFrame(s, fg_color="transparent")
         ust.grid(row=2, column=0, sticky="ew", pady=(0, 8))
         self.tara_butonu = ctk.CTkButton(
-            ust, text="◈  Görsel Yükle ve Tara", height=44, width=220,
+            ust, text="◈  Görsel Tara", height=44, width=170,
             font=ctk.CTkFont(size=15, weight="bold"),
             fg_color=MOR, hover_color=MOR_KOYU, command=self._gorsel_tara)
         self.tara_butonu.pack(side="left")
+        self.el_yazisi_butonu = ctk.CTkButton(
+            ust, text="✎  El Yazısı Tara (Yapay Zekâ)", height=44, width=230,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color=AMBER, hover_color="#D97706", text_color="black",
+            command=self._el_yazisi_tara)
+        self.el_yazisi_butonu.pack(side="left", padx=(8, 0))
         self.tara_durum = ctk.CTkLabel(ust, text="", text_color="gray60")
         self.tara_durum.pack(side="left", padx=12)
 
@@ -783,6 +790,56 @@ class Uygulama(ctk.CTk):
                     self.tara_durum.configure(
                         text=hata or "Görselde metin bulunamadı.",
                         text_color=KIRMIZI)
+            self.after(0, bitti)
+
+        threading.Thread(target=calis, daemon=True).start()
+
+    def _el_yazisi_tara(self):
+        """El yazısı listeyi ücretsiz Gemini yapay zekâsıyla okur."""
+        anahtar = self.ayar.get("gemini_anahtar", "").strip()
+        if not anahtar:
+            if messagebox.askyesno(
+                    UYGULAMA_ADI,
+                    "El yazısı tarama için ücretsiz bir Gemini API anahtarı "
+                    "gerekiyor (Google hesabı yeterli, kart istemez).\n\n"
+                    "Anahtar alma sayfası açılsın mı? Aldıktan sonra "
+                    "Ayarlar sayfasına yapıştır."):
+                import webbrowser
+                webbrowser.open(yapay_zeka.ANAHTAR_ADRESI)
+            self.sayfa_goster("ayarlar")
+            return
+        dosyalar = filedialog.askopenfilenames(
+            filetypes=[("Görseller", "*.png;*.jpg;*.jpeg;*.webp;*.bmp")])
+        if not dosyalar:
+            return
+        self.el_yazisi_butonu.configure(state="disabled")
+        self.tara_durum.configure(
+            text=f"{len(dosyalar)} görsel yapay zekâya gönderiliyor...",
+            text_color=AMBER)
+
+        def calis():
+            butun, hata = [], None
+            for yol in dosyalar:
+                try:
+                    butun.extend(yapay_zeka.gorselden_sarkilar(yol, anahtar))
+                except Exception as e:
+                    hata = str(e)
+
+            def bitti():
+                self.el_yazisi_butonu.configure(state="normal")
+                if butun:
+                    mevcut = self.tarama_sonuc.get("1.0", "end").strip()
+                    if mevcut:
+                        butun.insert(0, mevcut)
+                    self.tarama_sonuc.delete("1.0", "end")
+                    self.tarama_sonuc.insert("1.0", "\n".join(butun))
+                    self.tara_durum.configure(
+                        text=f"✔ {len(butun)} şarkı bulundu — kontrol edip ekle",
+                        text_color=YESIL)
+                else:
+                    self.tara_durum.configure(text="", text_color=KIRMIZI)
+                    messagebox.showwarning(
+                        UYGULAMA_ADI, hata or "Görselde şarkı bulunamadı.")
             self.after(0, bitti)
 
         threading.Thread(target=calis, daemon=True).start()
@@ -843,8 +900,40 @@ class Uygulama(ctk.CTk):
                       command=self._guncelleme_denetle
                       ).grid(row=3, column=0, sticky="w", padx=16, pady=(4, 14))
 
+        kart_ai = ctk.CTkFrame(s, corner_radius=10)
+        kart_ai.grid(row=3, column=0, sticky="ew", pady=6)
+        kart_ai.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(kart_ai, text="Yapay Zekâ — El Yazısı Tarama (ücretsiz)",
+                     font=ctk.CTkFont(size=16, weight="bold")
+                     ).grid(row=0, column=0, columnspan=2, sticky="w",
+                            padx=16, pady=(12, 4))
+        ctk.CTkLabel(kart_ai,
+                     text="Google hesabınla aistudio.google.com/apikey "
+                          "adresinden ÜCRETSİZ anahtar al (kart istemez), "
+                          "aşağıya yapıştır.",
+                     text_color="gray60", justify="left"
+                     ).grid(row=1, column=0, columnspan=2, sticky="w", padx=16)
+        self.gemini_girdi = ctk.CTkEntry(
+            kart_ai, placeholder_text="Gemini API anahtarı (AIza...)",
+            show="•")
+        self.gemini_girdi.grid(row=2, column=0, sticky="ew",
+                               padx=(16, 6), pady=6)
+        if self.ayar.get("gemini_anahtar"):
+            self.gemini_girdi.insert(0, self.ayar["gemini_anahtar"])
+        ctk.CTkButton(kart_ai, text="Kaydet", width=90, fg_color=YESIL,
+                      hover_color="#15803D", text_color="black",
+                      command=self._gemini_kaydet).grid(row=2, column=1,
+                                                        padx=(0, 16))
+        ctk.CTkButton(kart_ai, text="Ücretsiz Anahtar Al ↗", width=180,
+                      fg_color="transparent", border_width=1,
+                      border_color=AMBER, hover_color="#78350F",
+                      command=lambda: __import__("webbrowser").open(
+                          yapay_zeka.ANAHTAR_ADRESI)
+                      ).grid(row=3, column=0, sticky="w", padx=16,
+                             pady=(0, 14))
+
         kart3 = ctk.CTkFrame(s, corner_radius=10)
-        kart3.grid(row=3, column=0, sticky="ew", pady=6)
+        kart3.grid(row=4, column=0, sticky="ew", pady=6)
         ctk.CTkLabel(kart3, text="Hakkında",
                      font=ctk.CTkFont(size=16, weight="bold")
                      ).grid(row=0, column=0, sticky="w", padx=16, pady=(12, 4))
@@ -856,11 +945,19 @@ class Uygulama(ctk.CTk):
                  f"Yapımcı: {YAPIMCI}\n"
                  f"İndirme motoru: yt-dlp {motor}\n"
                  f"Kaynaklar: Otomatik yedekli (YouTube → SoundCloud)\n"
-                 f"Görsel tarama: Windows OCR (çevrimdışı)\n"
+                 f"Görsel tarama: Windows OCR (çevrimdışı) + "
+                 f"Gemini (el yazısı, ücretsiz)\n"
                  f"Stüdyo: ffmpeg (kes, ses, fade, hız, EQ, normalize)")
         ctk.CTkLabel(kart3, text=bilgi, justify="left", text_color="gray70"
                      ).grid(row=1, column=0, sticky="w", padx=16, pady=(0, 14))
         return s
+
+    def _gemini_kaydet(self):
+        self.ayar["gemini_anahtar"] = self.gemini_girdi.get().strip()
+        ayar_modulu.kaydet(self.ayar)
+        messagebox.showinfo(UYGULAMA_ADI,
+                            "Anahtar kaydedildi ✔\nArtık Görselden Tara "
+                            "sayfasında 'El Yazısı Tara' kullanılabilir.")
 
     def _tema_degistir(self, secim):
         tema = "dark" if secim == "Koyu" else "light"

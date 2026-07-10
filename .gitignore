@@ -8,6 +8,12 @@ __pycache__/
 ffmpeg/
 kurulum/
 
+# Demucs yapay zekâ çalışma ortamı (ilk kullanımda indirilir)
+demucs_rt/
+
+# Ekran görüntüleri (geliştirme artığı)
+ekran_*.png
+
 # Kullanıcı verileri
 ayarlar.json
 indirilenler.txt

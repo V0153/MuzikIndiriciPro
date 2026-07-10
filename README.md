@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Müzik İndirici PRO</h1>
-<p align="center"><b>v1.33</b> • Yapımcı: <b>V™</b></p>
+<p align="center"><b>v1.34</b> • Yapımcı: <b>V™</b></p>
 
 Modern arayüzlü, tam kapsamlı müzik indirme ve düzenleme uygulaması (Windows).
 
@@ -18,6 +18,9 @@ Modern arayüzlü, tam kapsamlı müzik indirme ve düzenleme uygulaması (Windo
 - **✎ Stüdyo** — kes (trim), ses kazancı, bas/tiz EQ, fade in/out, hız,
   perde (pitch), yankı (reverb), karaoke (vokal azaltma), normalize ve
   7 hazır önayar (Bas Güçlü, Nightcore, Slowed + Reverb…).
+- **⊘ Sözsüz Çıkar** — vokali kaldırıp enstrümantal üretir. 3 hızlı ffmpeg
+  yöntemi (anında, çevrimdışı) + **Demucs** yapay zekâ ile stüdyo kalitesinde
+  gerçek vokal ayırma (ilk kullanımda izole Python 3.12 ortamı indirilir).
 - **◈ Görselden Tara** — müzik listesi ekran görüntüsünden şarkı adlarını
   çevrimdışı Windows OCR ile okur ve indirme listesine ekler.
 - **✎ El Yazısı Tara** — el yazısı şarkı listelerini ücretsiz Gemini

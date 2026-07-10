@@ -61,12 +61,22 @@ class Oynatici:
             m.pause()
             self.duraklatildi = True
 
-    def durdur(self):
+    def durdur(self, birak=False):
+        """Çalmayı durdurur. birak=True ise dosya kilidini de bırakır
+        (unload) — böylece o dosyanın üstüne yeniden yazılabilir."""
         if self._hazir:
-            self._muzik().stop()
+            m = self._muzik()
+            m.stop()
+            if birak:
+                try:
+                    m.unload()  # Windows'ta dosya kilidini bırakır
+                except Exception:
+                    pass
         self.caliyor = False
         self.duraklatildi = False
         self._konum0 = 0.0
+        if birak:
+            self.yol = None
 
     def atla(self, saniye):
         """Parçanın istenen saniyesine gider (çalıyorsa çalmaya devam eder)."""

@@ -12,7 +12,8 @@ from PIL import Image
 from . import (SURUM, UYGULAMA_ADI, YAPIMCI, kaynak_yolu,
                sarkilari_oku, sarkilari_yaz)
 from . import ayarlar as ayar_modulu
-from . import etiketler, gorsel_tara, guncelleme, indirme, studyo, yapay_zeka
+from . import (etiketler, gorsel_tara, guncelleme, indirme, sozsuz, studyo,
+               yapay_zeka)
 from .oynatici import Oynatici
 
 MOR = "#7C3AED"
@@ -43,8 +44,11 @@ class Uygulama(ctk.CTk):
         self._durum = {"calisiyor": False, "durdur": False}
         self._secili_mp3 = None
         self._studyo_dosya = None
+        self._sozsuz_dosya = None
         self.oynatici = Oynatici()
         self._surukleme = False
+        self.kutuphane_degisken = tk.StringVar(
+            value=self.ayar.get("kutuphane_klasoru"))
 
         self._kenar_cubugu()
         self._sayfalar()
@@ -65,7 +69,7 @@ class Uygulama(ctk.CTk):
         cubuk = ctk.CTkFrame(self, width=220, corner_radius=0)
         cubuk.grid(row=0, column=0, sticky="nsw")
         cubuk.grid_propagate(False)
-        cubuk.grid_rowconfigure(8, weight=1)
+        cubuk.grid_rowconfigure(9, weight=1)
 
         try:
             logo = ctk.CTkImage(Image.open(kaynak_yolu("varliklar", "logo.png")),
@@ -85,6 +89,7 @@ class Uygulama(ctk.CTk):
                 ("indirici", "↓  İndirici"),
                 ("kutuphane", "♫  Kütüphane"),
                 ("studyo", "✎  Stüdyo"),
+                ("sozsuz", "⊘  Sözsüz Çıkar"),
                 ("tarama", "◈  Görselden Tara"),
                 ("ayarlar", "⚙  Ayarlar")], start=3):
             b = ctk.CTkButton(cubuk, text=yazi, anchor="w", height=42,
@@ -97,7 +102,7 @@ class Uygulama(ctk.CTk):
 
         ctk.CTkLabel(cubuk, text=f"v{SURUM}  •  Yapımcı: {YAPIMCI}",
                      text_color="gray55",
-                     font=ctk.CTkFont(size=12)).grid(row=9, column=0, pady=14)
+                     font=ctk.CTkFont(size=12)).grid(row=10, column=0, pady=14)
 
     def sayfa_goster(self, anahtar):
         for a, sayfa in self._sayfa_sozlugu.items():
@@ -113,6 +118,7 @@ class Uygulama(ctk.CTk):
             "indirici": self._sayfa_indirici(),
             "kutuphane": self._sayfa_kutuphane(),
             "studyo": self._sayfa_studyo(),
+            "sozsuz": self._sayfa_sozsuz(),
             "tarama": self._sayfa_tarama(),
             "ayarlar": self._sayfa_ayarlar(),
         }
@@ -392,8 +398,14 @@ class Uygulama(ctk.CTk):
                       fg_color="transparent", border_width=1,
                       border_color=MOR, hover_color=MOR_KOYU,
                       command=self._studyoda_ac).grid(row=15, column=0,
-                                                      padx=16, pady=(0, 14),
+                                                      padx=16, pady=(0, 4),
                                                       sticky="ew")
+        ctk.CTkButton(panel, text="⊘  Sözsüz Çıkar (vokali kaldır)",
+                      fg_color="transparent", border_width=1,
+                      border_color=AMBER, hover_color="#78350F",
+                      command=self._sozsuz_ac).grid(row=16, column=0,
+                                                    padx=16, pady=(0, 14),
+                                                    sticky="ew")
         return s
 
     def _studyoda_ac(self):
@@ -402,10 +414,16 @@ class Uygulama(ctk.CTk):
         self._studyo_dosya_ayarla(self._secili_mp3)
         self.sayfa_goster("studyo")
 
+    def _sozsuz_ac(self):
+        if not self._secim_gerekli():
+            return
+        self._sozsuz_dosya_ayarla(self._secili_mp3)
+        self.sayfa_goster("sozsuz")
+
     def kutuphane_yenile(self):
         for cocuk in self.mp3_listesi.winfo_children():
             cocuk.destroy()
-        klasor = self.klasor_degisken.get()
+        klasor = self.kutuphane_degisken.get()
         dosyalar = etiketler.mp3_listele(klasor)
         if not dosyalar:
             ctk.CTkLabel(self.mp3_listesi,
@@ -632,7 +650,7 @@ class Uygulama(ctk.CTk):
 
     def _studyo_dosya_sec(self):
         yol = filedialog.askopenfilename(
-            initialdir=self.klasor_degisken.get(),
+            initialdir=self.kutuphane_degisken.get(),
             filetypes=[("MP3", "*.mp3")])
         if yol:
             self._studyo_dosya_ayarla(yol)
@@ -653,10 +671,11 @@ class Uygulama(ctk.CTk):
         if mod == "uzerine" and not messagebox.askyesno(
                 UYGULAMA_ADI, "Orijinal dosyanın üzerine yazılacak. Emin misin?"):
             return
-        # Dosya kilidini önlemek için ilgili dosya çalıyorsa durdur
-        if self.oynatici.yol and (mod == "uzerine"
-                                  or self.oynatici.yol == self._studyo_dosya):
-            self._calar_durdur()
+        # Üzerine yazarken kaynak dosya çalıyorsa kilidi bırak
+        if mod == "uzerine" and self.oynatici.yol == self._studyo_dosya:
+            self.oynatici.durdur(birak=True)
+            self.calar_dugme.configure(text="▶")
+            self.calar_slider.set(0)
         try:
             b0 = studyo.zaman_coz(self.studyo_bas.get())
             b1 = studyo.zaman_coz(self.studyo_bit.get())
@@ -687,9 +706,14 @@ class Uygulama(ctk.CTk):
             import tempfile
             try:
                 if mod == "onizle":
-                    hedef = os.path.join(tempfile.gettempdir(),
-                                         "MuzikPro_onizleme.mp3")
-                    self.oynatici.durdur()  # dosya kilidini bırak
+                    # Her önizlemeye dönüşümlü ad ver; çalan dosyanın üstüne
+                    # yazıp kilit hatası (Permission denied) almayı önler.
+                    self._onizleme_no = getattr(self, "_onizleme_no", 0) + 1
+                    hedef = os.path.join(
+                        tempfile.gettempdir(),
+                        f"MuzikPro_onizleme_{self._onizleme_no % 3}.mp3")
+                    if self.oynatici.yol == hedef:
+                        self.oynatici.durdur(birak=True)  # kilidi bırak
                     studyo.duzenle(kaynak, hedef, **parametreler)
                     self.after(0, lambda: self.oynat(hedef))
                     mesaj = "Önizleme uygulama içinde çalıyor (kalıcı değil)."
@@ -712,6 +736,166 @@ class Uygulama(ctk.CTk):
             finally:
                 self.after(0, lambda: [b.configure(state="normal")
                                        for b in self.studyo_butonlar])
+
+        threading.Thread(target=calis, daemon=True).start()
+
+    # -------------------------------------------------------------- SÖZSÜZ sayfası
+    _SOZSUZ_ACIKLAMA = {
+        "Klasik Merkez Çıkarma":
+            "Sol-sağ kanal farkı; ortada duran vokali siler. Anında, ücretsiz. "
+            "Ortadaki bas/davulu da azaltabilir.",
+        "Bas Korumalı Çıkarma":
+            "Vokali siler ama bas ve davulu korur. Çoğu şarkı için en dengeli "
+            "hızlı yöntem. Anında, ücretsiz.",
+        "Güçlü Çıkarma (Mono)":
+            "En agresif merkez bastırma; vokal izini en aza indirir. "
+            "Ses biraz daralabilir. Anında, ücretsiz.",
+        "Yapay Zekâ (Demucs)":
+            "Meta'nın yapay zekâsıyla GERÇEK vokal ayırma — stüdyo kalitesi. "
+            "İlk kullanımda ~2 GB indirir (internet gerekir), şarkı başına "
+            "1-2 dakika sürer.",
+    }
+
+    def _sayfa_sozsuz(self):
+        s = ctk.CTkFrame(self, fg_color="transparent")
+        s.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(s, text="Sözsüz (Enstrümantal) Çıkar",
+                     font=ctk.CTkFont(size=24, weight="bold")
+                     ).grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(s, text="Şarkının vokalini kaldırıp sadece müziği bırakır. "
+                             "Yöntem seç, önizle, beğenirsen kaydet.",
+                     text_color="gray60").grid(row=1, column=0, sticky="w",
+                                               pady=(0, 10))
+
+        dosya_kutu = ctk.CTkFrame(s, corner_radius=10)
+        dosya_kutu.grid(row=2, column=0, sticky="ew", pady=(0, 8))
+        dosya_kutu.grid_columnconfigure(0, weight=1)
+        self.sozsuz_dosya_etiketi = ctk.CTkLabel(
+            dosya_kutu, text="Dosya seçilmedi — Kütüphaneden 'Sözsüz Çıkar' "
+                             "veya buradan seç.", anchor="w")
+        self.sozsuz_dosya_etiketi.grid(row=0, column=0, sticky="ew",
+                                       padx=14, pady=10)
+        ctk.CTkButton(dosya_kutu, text="Dosya Seç", width=100, fg_color=MOR,
+                      hover_color=MOR_KOYU, command=self._sozsuz_dosya_sec
+                      ).grid(row=0, column=1, padx=14)
+
+        kart = ctk.CTkFrame(s, corner_radius=10)
+        kart.grid(row=3, column=0, sticky="ew")
+        kart.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(kart, text="Yöntem", anchor="w",
+                     font=ctk.CTkFont(size=14, weight="bold")
+                     ).grid(row=0, column=0, sticky="w", padx=16, pady=(14, 2))
+        self.sozsuz_yontem = ctk.CTkOptionMenu(
+            kart, values=sozsuz.YONTEMLER, width=280, fg_color=MOR,
+            button_color=MOR_KOYU, command=self._sozsuz_yontem_degisti)
+        self.sozsuz_yontem.set("Bas Korumalı Çıkarma")
+        self.sozsuz_yontem.grid(row=1, column=0, sticky="w", padx=16)
+        self.sozsuz_aciklama = ctk.CTkLabel(
+            kart, text=self._SOZSUZ_ACIKLAMA["Bas Korumalı Çıkarma"],
+            anchor="w", justify="left", wraplength=760, text_color="gray60")
+        self.sozsuz_aciklama.grid(row=2, column=0, sticky="ew",
+                                  padx=16, pady=(6, 14))
+
+        alt = ctk.CTkFrame(s, fg_color="transparent")
+        alt.grid(row=4, column=0, sticky="ew", pady=(10, 0))
+        self.sozsuz_butonlar = []
+        for yazi, renk, hover, mod in [
+                ("▶ Önizle", MOR, MOR_KOYU, "onizle"),
+                ("✔ Sözsüz Kaydet", YESIL, "#15803D", "kaydet")]:
+            b = ctk.CTkButton(alt, text=yazi, height=44, width=200,
+                              fg_color=renk, hover_color=hover,
+                              text_color="black" if renk != MOR else "white",
+                              font=ctk.CTkFont(size=14, weight="bold"),
+                              command=lambda m=mod: self._sozsuz_uygula(m))
+            b.pack(side="left", padx=(0, 10))
+            self.sozsuz_butonlar.append(b)
+
+        self.sozsuz_ilerleme = ctk.CTkProgressBar(s, progress_color=AMBER)
+        self.sozsuz_ilerleme.set(0)
+        self.sozsuz_ilerleme.grid(row=5, column=0, sticky="ew", pady=(14, 4))
+        self.sozsuz_ilerleme.grid_remove()
+        self.sozsuz_durum = ctk.CTkLabel(s, text="", text_color="gray60",
+                                         anchor="w", justify="left")
+        self.sozsuz_durum.grid(row=6, column=0, sticky="ew", pady=(4, 0))
+        return s
+
+    def _sozsuz_yontem_degisti(self, ad):
+        self.sozsuz_aciklama.configure(
+            text=self._SOZSUZ_ACIKLAMA.get(ad, ""))
+
+    def _sozsuz_dosya_sec(self):
+        yol = filedialog.askopenfilename(
+            initialdir=self.kutuphane_degisken.get(),
+            filetypes=[("MP3", "*.mp3")])
+        if yol:
+            self._sozsuz_dosya_ayarla(yol)
+
+    def _sozsuz_dosya_ayarla(self, yol):
+        self._sozsuz_dosya = yol
+        self.sozsuz_dosya_etiketi.configure(text=f"♪ {os.path.basename(yol)}")
+
+    def _sozsuz_uygula(self, mod):
+        if not self._sozsuz_dosya or not os.path.exists(self._sozsuz_dosya):
+            messagebox.showinfo(UYGULAMA_ADI, "Önce bir MP3 seç.")
+            return
+        yontem = self.sozsuz_yontem.get()
+        kaynak = self._sozsuz_dosya
+        kalite = self.kalite_secim.get() + "k"
+
+        if mod == "onizle" and self.oynatici.yol \
+                and self.oynatici.yol.startswith(
+                    os.path.join(__import__("tempfile").gettempdir(),
+                                 "MuzikPro_sozsuz")):
+            self.oynatici.durdur(birak=True)
+
+        for b in self.sozsuz_butonlar:
+            b.configure(state="disabled")
+        self.sozsuz_durum.configure(text="İşleniyor...", text_color=AMBER)
+
+        def ilerleme(asama):
+            if asama == "kurulum":
+                self.after(0, lambda: (
+                    self.sozsuz_ilerleme.grid(),
+                    self.sozsuz_ilerleme.configure(mode="indeterminate"),
+                    self.sozsuz_ilerleme.start(),
+                    self.sozsuz_durum.configure(
+                        text="Yapay zekâ ilk kez kuruluyor (~2 GB, birkaç "
+                             "dakika). Bu bir defalık...", text_color=AMBER)))
+
+        def log(mesaj):
+            self.after(0, lambda: self.sozsuz_durum.configure(
+                text=mesaj, text_color=AMBER))
+
+        def calis():
+            import tempfile
+            try:
+                if mod == "onizle":
+                    self._sozsuz_no = getattr(self, "_sozsuz_no", 0) + 1
+                    hedef = os.path.join(
+                        tempfile.gettempdir(),
+                        f"MuzikPro_sozsuz_{self._sozsuz_no % 3}.mp3")
+                    sozsuz.sozsuz_yap(kaynak, hedef, yontem, bitrate=kalite,
+                                      log=log, ilerleme=ilerleme)
+                    self.after(0, lambda: self.oynat(hedef))
+                    mesaj = "✔ Önizleme çalıyor (kalıcı değil). Beğendiysen kaydet."
+                else:
+                    hedef = sozsuz.sozsuz_adi(kaynak)
+                    sozsuz.sozsuz_yap(kaynak, hedef, yontem, bitrate=kalite,
+                                      log=log, ilerleme=ilerleme)
+                    mesaj = f"✔ Kaydedildi: {os.path.basename(hedef)}"
+                self.after(0, lambda: self.sozsuz_durum.configure(
+                    text=mesaj, text_color=YESIL))
+            except Exception as e:
+                hata = str(e)
+                self.after(0, lambda: self.sozsuz_durum.configure(
+                    text="✖ " + hata[:200], text_color=KIRMIZI))
+            finally:
+                self.after(0, lambda: (
+                    self.sozsuz_ilerleme.stop(),
+                    self.sozsuz_ilerleme.configure(mode="determinate"),
+                    self.sozsuz_ilerleme.grid_remove(),
+                    [b.configure(state="normal") for b in self.sozsuz_butonlar]))
 
         threading.Thread(target=calis, daemon=True).start()
 
@@ -861,14 +1045,48 @@ class Uygulama(ctk.CTk):
 
     # ------------------------------------------------------------- AYARLAR sayfası
     def _sayfa_ayarlar(self):
-        s = ctk.CTkFrame(self, fg_color="transparent")
+        s = ctk.CTkScrollableFrame(self, fg_color="transparent")
         s.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(s, text="Ayarlar", font=ctk.CTkFont(size=24, weight="bold")
                      ).grid(row=0, column=0, sticky="w", pady=(0, 12))
 
+        # --- Klasörler --------------------------------------------------
+        kart0 = ctk.CTkFrame(s, corner_radius=10)
+        kart0.grid(row=1, column=0, sticky="ew", pady=6)
+        kart0.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(kart0, text="Klasörler",
+                     font=ctk.CTkFont(size=16, weight="bold")
+                     ).grid(row=0, column=0, columnspan=3, sticky="w",
+                            padx=16, pady=(12, 4))
+        ctk.CTkLabel(kart0, text="İndirilen/kaydedilen müziklerin gideceği "
+                                 "klasör:", text_color="gray60"
+                     ).grid(row=1, column=0, columnspan=3, sticky="w", padx=16)
+        ctk.CTkEntry(kart0, textvariable=self.klasor_degisken
+                     ).grid(row=2, column=0, columnspan=2, sticky="ew",
+                            padx=(16, 6), pady=4)
+        ctk.CTkButton(kart0, text="Seç", width=70, fg_color=MOR,
+                      hover_color=MOR_KOYU,
+                      command=self._indirme_klasoru_sec
+                      ).grid(row=2, column=2, padx=(0, 16))
+        ctk.CTkLabel(kart0, text="Kütüphanenin (çekme) göstereceği klasör:",
+                     text_color="gray60"
+                     ).grid(row=3, column=0, columnspan=3, sticky="w",
+                            padx=16, pady=(8, 0))
+        ctk.CTkEntry(kart0, textvariable=self.kutuphane_degisken
+                     ).grid(row=4, column=0, columnspan=2, sticky="ew",
+                            padx=(16, 6), pady=4)
+        ctk.CTkButton(kart0, text="Seç", width=70, fg_color=MOR,
+                      hover_color=MOR_KOYU,
+                      command=self._kutuphane_klasoru_sec
+                      ).grid(row=4, column=2, padx=(0, 16))
+        ctk.CTkButton(kart0, text="✔ Klasörleri Kaydet", fg_color=YESIL,
+                      hover_color="#15803D", text_color="black",
+                      command=self._klasorleri_kaydet
+                      ).grid(row=5, column=0, sticky="w", padx=16, pady=(6, 14))
+
         kart1 = ctk.CTkFrame(s, corner_radius=10)
-        kart1.grid(row=1, column=0, sticky="ew", pady=6)
+        kart1.grid(row=2, column=0, sticky="ew", pady=6)
         kart1.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(kart1, text="Görünüm",
                      font=ctk.CTkFont(size=16, weight="bold")
@@ -880,7 +1098,7 @@ class Uygulama(ctk.CTk):
         self.tema_secim.grid(row=1, column=0, sticky="w", padx=16, pady=(0, 14))
 
         kart2 = ctk.CTkFrame(s, corner_radius=10)
-        kart2.grid(row=2, column=0, sticky="ew", pady=6)
+        kart2.grid(row=3, column=0, sticky="ew", pady=6)
         kart2.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(kart2, text="Güncelleme",
                      font=ctk.CTkFont(size=16, weight="bold")
@@ -901,7 +1119,7 @@ class Uygulama(ctk.CTk):
                       ).grid(row=3, column=0, sticky="w", padx=16, pady=(4, 14))
 
         kart_ai = ctk.CTkFrame(s, corner_radius=10)
-        kart_ai.grid(row=3, column=0, sticky="ew", pady=6)
+        kart_ai.grid(row=4, column=0, sticky="ew", pady=6)
         kart_ai.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(kart_ai, text="Yapay Zekâ — El Yazısı Tarama (ücretsiz)",
                      font=ctk.CTkFont(size=16, weight="bold")
@@ -933,7 +1151,7 @@ class Uygulama(ctk.CTk):
                              pady=(0, 14))
 
         kart3 = ctk.CTkFrame(s, corner_radius=10)
-        kart3.grid(row=4, column=0, sticky="ew", pady=6)
+        kart3.grid(row=5, column=0, sticky="ew", pady=6)
         ctk.CTkLabel(kart3, text="Hakkında",
                      font=ctk.CTkFont(size=16, weight="bold")
                      ).grid(row=0, column=0, sticky="w", padx=16, pady=(12, 4))
@@ -947,7 +1165,8 @@ class Uygulama(ctk.CTk):
                  f"Kaynaklar: Otomatik yedekli (YouTube → SoundCloud)\n"
                  f"Görsel tarama: Windows OCR (çevrimdışı) + "
                  f"Gemini (el yazısı, ücretsiz)\n"
-                 f"Stüdyo: ffmpeg (kes, ses, fade, hız, EQ, normalize)")
+                 f"Stüdyo: ffmpeg (kes, ses, fade, hız, EQ, normalize)\n"
+                 f"Sözsüz: ffmpeg (3 yöntem) + Demucs yapay zekâ")
         ctk.CTkLabel(kart3, text=bilgi, justify="left", text_color="gray70"
                      ).grid(row=1, column=0, sticky="w", padx=16, pady=(0, 14))
         return s
@@ -958,6 +1177,27 @@ class Uygulama(ctk.CTk):
         messagebox.showinfo(UYGULAMA_ADI,
                             "Anahtar kaydedildi ✔\nArtık Görselden Tara "
                             "sayfasında 'El Yazısı Tara' kullanılabilir.")
+
+    def _indirme_klasoru_sec(self):
+        secim = filedialog.askdirectory(initialdir=self.klasor_degisken.get())
+        if secim:
+            self.klasor_degisken.set(os.path.normpath(secim))
+
+    def _kutuphane_klasoru_sec(self):
+        secim = filedialog.askdirectory(
+            initialdir=self.kutuphane_degisken.get())
+        if secim:
+            self.kutuphane_degisken.set(os.path.normpath(secim))
+
+    def _klasorleri_kaydet(self):
+        self.ayar["indirme_klasoru"] = self.klasor_degisken.get()
+        self.ayar["kutuphane_klasoru"] = self.kutuphane_degisken.get()
+        ayar_modulu.kaydet(self.ayar)
+        self.kutuphane_yenile()
+        messagebox.showinfo(UYGULAMA_ADI,
+                            "Klasörler kaydedildi ✔\n"
+                            f"İndirme/kayıt: {self.klasor_degisken.get()}\n"
+                            f"Kütüphane: {self.kutuphane_degisken.get()}")
 
     def _tema_degistir(self, secim):
         tema = "dark" if secim == "Koyu" else "light"

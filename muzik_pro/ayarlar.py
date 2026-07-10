@@ -10,6 +10,7 @@ VARSAYILANLAR = {
     "kaynak": "Otomatik",
     "kalite": "192",
     "indirme_klasoru": VARSAYILAN_KLASOR,
+    "kutuphane_klasoru": VARSAYILAN_KLASOR,
     "guncelleme_url": "",
     "gemini_anahtar": "",
 }

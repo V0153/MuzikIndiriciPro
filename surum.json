@@ -1,5 +1,5 @@
 {
-  "surum": "1.33",
-  "indirme_url": "https://github.com/V0153/MuzikIndiriciPro/releases/download/v1.33/MuzikIndiriciPro_Kurulum.exe",
-  "notlar": "Yeni: El Yazısı Tara — el yazısı şarkı listeleri ücretsiz Gemini yapay zekâsıyla okunuyor (Ayarlar'dan ücretsiz anahtar). Görselden Tara sayfasında ayrı düğme."
+  "surum": "1.34",
+  "indirme_url": "https://github.com/V0153/MuzikIndiriciPro/releases/download/v1.34/MuzikIndiriciPro_Kurulum.exe",
+  "notlar": "Yeni: Sözsüz (Enstrümantal) Çıkar sayfası — 3 hızlı ffmpeg yöntemi + Demucs yapay zekâ. Ayarlar'dan indirme ve kütüphane klasörü seçme. Stüdyo önizleme kilit hatası düzeltildi."
 }
